@@ -22,11 +22,14 @@ run the image in docker container, generate Jenkins jobs via jenkins-job-builder
     >    [!NOTE]  
     Building the image takes around 25 minutes, so be patient ;)
   
-5. After the container built and run, execute following command to get the unlocking code:
+5. After the container built and run, execute following commands:
     
-    ```docker exec -it jenkins bash```
-   
+    1.```docker exec -it jenkins bash``` to get the code for unlock Jenkins
+    
     You will see the message from Jenkins with unlocking code, **copy it**. 
+
+      2.```/etc/init.d/docker start``` to run docker inside the controller   
+
 6. Open the Jenkins on any web-browser (```*computer_ip*:8080```) 
    
     You will see an unlocking page. Paste previously copied code and proceed. 
