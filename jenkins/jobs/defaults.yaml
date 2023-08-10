@@ -2,12 +2,12 @@
     name: demo_git_linux
     scm:
       - git:
-          url: https://github.com/a-blinkov/demo.git
+          url: https://github.com/a-blinkov/demo-jenkins.git
           force-polling-using-workspace: true
           branches:
             - "*/$BRANCH_NAME_DEMO"
           browser: gitlab
-          browser-url: "https://github.com/a-blinkov/demo"
+          browser-url: "https://github.com/a-blinkov/demo-jenkins"
           credentials-id: "github_user"
           timeout: 20
           per-build-tag: false
