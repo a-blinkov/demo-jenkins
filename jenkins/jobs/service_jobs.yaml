@@ -80,7 +80,7 @@
     pollscm_timed: ""
     name: "DEMO_JOBS_PROJECT"
     something:
-      - 'BaseTest':
+      - 'BASE_TEST':
           BASE_PATH: ""
           KEYWORDS: ""
           NUM_PROCESSES: 10
