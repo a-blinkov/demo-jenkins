@@ -12,12 +12,12 @@ class TestExamples:
         pass
 
     def test_should_fail(self):
-        raise Exception('The test is failed by design')
+        raise AssertionError('The test is failed by design')
 
     def test_should_be_flaky(self):
         should_fail = random.choice([True, False])
         if should_fail:
-            raise Exception('Test failed')
+            raise AssertionError('Test failed')
 
     def teardown(self):
         pass
