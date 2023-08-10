@@ -1,0 +1,86 @@
+- job-template:
+    defaults: defaults_service
+    name: DEMO_{something}
+    concurrent: true
+    wrappers:
+      - wrappers_base
+    triggers:
+      - pollscm:
+          cron: "{pollscm_timed}"
+    parameters:
+      - params_only_branch_name
+      - bool:
+          name: RERUN_ONLY_FAILED
+          default: false
+          description: "If enabled - would look for a failed tests from rebuilded job and re-run just it"
+      - string:
+          name: BASE_PATH
+          default: "{BASE_PATH}"
+          description: "Base path"
+      - string:
+          name: NUM_PROCESSES
+          default: "{NUM_PROCESSES}"
+      - bool:
+          name: ENABLE_TEST_DATA_CLEANUP
+          default: true
+    builders:
+      - shell: |
+          if [ "${{MERGE_MASTER}}" = "true" ]
+          then
+              git merge origin/master
+          fi
+          if [ -n "${{DOTENV_FILE}}" ]
+          then
+              cp ${{DOTENV_FILE}} .env
+          fi
+      - shell: |
+          export DOCKER_BUILDKIT=1
+          DOCKER_TAG_NAME=`echo "${{BUILD_TAG}}" | tr '[:upper:]' '[:lower:]'`
+          docker build --tag ${{DOCKER_TAG_NAME}} --file python.Dockerfile .
+      - shell: |
+          if [ ${{RERUN_ONLY_FAILED}} = true ]; then
+            PYTEST_LAST_FAILED_ARG="--last-failed"
+          else
+            PYTEST_LAST_FAILED_ARG=""
+          fi
+          tee script.sh <<EOF
+            exec /venv/bin/python -m pytest -v --showlocals ${{PYTEST_LAST_FAILED_ARG}} --no-summary ${{BASE_PATH}}
+          EOF
+          DOCKER_TAG_NAME=`echo "${{BUILD_TAG}}" | tr '[:upper:]' '[:lower:]'`
+          docker run \
+            --cap-add=SYS_PTRACE \
+            --rm \
+            --user `id --user`:`id --group` \
+            --workdir /code \
+            --volume=$PWD:/code \
+            --volume=$PWD:/code --volume=$HOME/.ssh:/.ssh \
+            --name ${{DOCKER_TAG_NAME}} ${{DOCKER_TAG_NAME}} \
+            sh script.sh
+    publishers:
+      - demo_allure_publisher
+      - archive:
+          artifacts: 'allure-results.zip'
+          allow-empty: 'true'
+          fingerprint: false
+          default-excludes: false
+      - archive:
+          artifacts: '*.log'
+          allow-empty: 'true'
+          fingerprint: false
+          default-excludes: false
+      - archive:
+          artifacts: 'pytest_cache.zip'
+          allow-empty: 'true'
+          fingerprint: false
+          default-excludes: false
+
+- project:
+    jobs:
+      - 'DEMO_{something}'
+    pollscm_timed: ""
+    name: "DEMO_JOBS_PROJECT"
+    something:
+      - 'BaseTest':
+          BASE_PATH: ""
+          KEYWORDS: ""
+          NUM_PROCESSES: 10

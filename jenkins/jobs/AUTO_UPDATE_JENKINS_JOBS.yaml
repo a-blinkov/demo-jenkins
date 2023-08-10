@@ -1,0 +1,12 @@
+- job:
+    defaults: defaults_service
+    name: AUTO_UPDATE_JENKINS_JOBS
+    parameters:
+      - params_only_branch_name
+      - string:
+          name: JOB_NAMES
+          default: ""
+          description: "Job names to export."
+    builders:
+        - shell:
+            jenkins-jobs --flush-cache --conf jenkins/linux.ini --server local-jenkins update jenkins/jobs/ $JOB_NAMES

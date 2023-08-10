@@ -1,0 +1,79 @@
+- scm: # source code location
+    name: demo_git_linux
+    scm:
+      - git:
+          url: https://github.com/a-blinkov/demo.git
+          force-polling-using-workspace: true
+          branches:
+            - "*/$BRANCH_NAME_DEMO"
+          browser: gitlab
+          browser-url: "https://github.com/a-blinkov/demo"
+          credentials-id: "github_user"
+          timeout: 20
+          per-build-tag: false
+          git-tool: linux
+          skip-tag: true
+          clean: 
+            before: true
+          local-branch: "$BRANCH_NAME_DEMO"
+
+- parameter:
+    name: params_only_branch_name
+    parameters:
+      - string:
+          name: BRANCH_NAME_DEMO
+          default: "main"
+          description: "branch name with changed jobs"
+
+
+- wrapper:
+    name: wrappers_base
+    wrappers:
+      - timestamps
+      - credentials-binding:
+        - username-password-separated:
+            credential-id: github_user
+            username: GITHUB_USER
+            password: GITHUB_PASSWORD
+
+- defaults:
+    name: defaults_service
+    disabled: false
+    project-type: freestyle
+    concurrent: false
+    node: linux
+    logrotate:
+      daysToKeep: 30
+      numToKeep: 300
+    wrappers:
+      - wrappers_base
+    scm:
+      - demo_git_linux
+
+- publisher:
+    name: demo_allure_publisher
+    publishers:
+      - post-tasks:
+          - matches:
+              - log-text: ""
+                operator: AND
+            escalate-status: true
+            script: |
+              DOCKER_TAG_NAME=`echo "${BUILD_TAG}" | tr '[:upper:]' '[:lower:]'`
+              if [ "$(docker ps --quiet --filter name=${DOCKER_TAG_NAME})" ];
+              then
+                echo "Stop container"
+                docker stop --time 600 ${DOCKER_TAG_NAME}
+              fi
+      - allure:
+          results-paths:
+            - path: "allure-results"
+          properties:
+            - key: reportVersionCustom
+              value: "2.26.0"
+            - key: reportVersionPolicy
+              value: CUSTOM
+            - key: resultsPattern
+              value: allure-results
+          version: "2.26.0"
+          include-properties: true
