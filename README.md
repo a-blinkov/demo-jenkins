@@ -1,5 +1,5 @@
 # demo-jenkins project
-#### You can find deployed and working solution on my server - http://5.180.174.20:8080/ 
+
 #### With this project you could deploy your own Jenkins to run autotests or create some other CI/CD pipelines. 
 
 The project will help you build Jenkins controller image by [jenkins.Dockerfile](jenkins%2Fjenkins.Dockerfile),
